@@ -1,6 +1,7 @@
 const express = require("express")
 const cors = require("cors")
 const logger = require("./middleware/logger")
+const validateUserID = require("./middleware/validateUserID")
 const users = require("./users/userDb")
 const userRouter = require("./users/userRouter")
 
