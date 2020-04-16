@@ -1,18 +1,18 @@
 const express = require("express")
 const cors = require("cors")
 const logger = require("./middleware/logger")
-const validateUserID = require("./middleware/validateUserID")
+
 const users = require("./users/userDb")
 const userRouter = require("./users/userRouter")
 
-const server = expres()
+const server = express()
 const port = 4000
 
 server.use(express.json())
 server.use(cors())
 server.use(logger({ format: "long" }))
 
-server.use("./users", userRouter)
+server.use("/users", userRouter)
 
 //this middleware function will only run if no route is found.
 //routes never call `next()`, so if a route is found, htis never runs.

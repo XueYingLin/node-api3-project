@@ -2,6 +2,7 @@ const express = require('express');
 
 const router = express.Router();
 const users = require("./userDb");
+const postDb = require("../posts/postDb");
 
 // const validateUserID = require("../middleware/validateUserID")
 // const validateUser = require("../middleware/validateUser")
@@ -17,12 +18,19 @@ router.post('/', validatePost(), (req, res) => {
     })
 });
 
-router.post('/:id/posts', validateUserId(), (req, res) => {
+//*
+router.post('/:id/posts', validateUserId(), (req, res, next) => {
   // do your magic!
   if (!req.body.text) {
     return res.status(400).json({message: "Need a value for text"})
   }
-   users.insert(req.params.id, req.body)
+
+  let newPost = {
+    user_id: req.user.id,
+    text: req.body.text
+  }
+
+  postDb.insert(newPost)
     .then((post) => {
       res.status(201).json(post)
     })
@@ -32,15 +40,9 @@ router.post('/:id/posts', validateUserId(), (req, res) => {
 });
 
 router.get('/', (req, res, next) => {
-  // do your magic!
-  const options = {
-    sortBy: req.query.sortBy,
-    limit: req.query.limit
-  }
-
-  users.find(options)
-    .then((uers) => {
-      res.status(200).json(users)
+  users.get()
+    .then((user) => {
+      res.status(200).json(user)
     })
     .catch((eror) => {
       next(error)
@@ -53,11 +55,12 @@ router.get('/:id', validateUserId(), (req, res, next) => {
   res.status(200).json(req.user)
 });
 
+//*
 router.get('/:id/posts', validateUserId(), (req, res, next) => {
   // do your magic!
   users.getUserPosts(req.params.id)
     .then((posts) => {
-      res.status(200).json(post)
+      res.status(200).json(posts)
     })
     .catch((error) => {
       next(error)
@@ -88,17 +91,17 @@ router.put('/:id', validateUser(), (req, res, next) => {
 
 //custom middleware
 
-function validateUserId(req, res, next) {
+function validateUserId() {
   // do your magic!
   return (req, res, next) => {
     users.getById(req.params.id)
       .then((user) => {
-        if (use) {
+        if (user) {
           req.user = user;
           next();
         } else {
           res.status(400).json({
-            message: "missing required name field"
+            message: "invalid user id"
           })
         }
       })
@@ -108,30 +111,28 @@ function validateUserId(req, res, next) {
   }
 }
 
-function validateUser(req, res, next) {
+function validateUser() {
   // do your magic!
-  users.getById(req.body.id)
-    .then((user) => {
-      if (!req.body) {
-        return res.status(400).json({message: "missing post data"})
-      }
-      if (!req.body.name) {
-        return res.status(400).json({ message: "missing required name field" })
-      }
-    })
+  return (req, res, next) => {
+    if (!req.body) {
+      return res.status(400).json({message: "missing user data"})
+    }
+    if (!req.body.text) {
+      return res.status(400).json({message: "missing required text field"})
+    }
+  }
 }
 
-function validatePost(req, res, next) {
+function validatePost() {
   // do your magic!
-  users.getUserPosts(req.body.post)
-    .then((post) => {
-      if (!req.body) {
-        return res.status(400).json({ message: "missing post data" })
-      }
-      if (!req.body.text) {
-        return res.status(400).json({ message: "missing required text field" })
-      }
-    })
+  return (req, res, next) => {
+    if (!req.body) {
+      return res.status(400).json({ message: "missing post data" });
+    }
+    if (!req.body.text) {
+      return res.status(400).json({ message: "missing required text field" });
+    }
+  };
 }
 
 
