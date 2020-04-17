@@ -7,7 +7,7 @@ const postDb = require("../posts/postDb");
 // const validateUserID = require("../middleware/validateUserID")
 // const validateUser = require("../middleware/validateUser")
 
-router.post('/', validatePost(), (req, res) => {
+router.post('/', validatePost(), (req, res, next) => {
   // do your magic!
   users.insert(req.body)
     .then((user) => {
